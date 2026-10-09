@@ -31,9 +31,17 @@
     return {
       version: 1, code, title: String(title || 'Unser Spieleabend').slice(0, 36), mode,
       maxPlayers: Math.max(2, Math.min(6, Number(maxPlayers) || 4)),
-      started: false, createdAt: Date.now(), players: [{ id: playerId, name: String(name || 'Gastgeber').slice(0, 22), color: COLOR_NAMES[0], online: true }],
+      started: false, createdAt: Date.now(), players: [{ id: playerId, name: String(name || 'Gastgeber').slice(0, 22), color: COLOR_NAMES[0], online: true, points: 0 }],
       history: [], barbarianSteps: 0, attackPending: false, attacks: 0, attackResetAt: 0
     };
+  }
+  function setPoints(state, playerId, nextPoints) {
+    const p=state.players.find(p=>p.id===playerId);
+    if(!p)throw new Error('Spieler nicht gefunden');
+    const score=Number(nextPoints);
+    if(!Number.isInteger(score)||score<0||score>99)throw new Error('Punkte müssen zwischen 0 und 99 liegen');
+    p.points=score;
+    return score;
   }
   function roll(state, playerId, randomFn) {
     if (!state.started) throw new Error('Das Spiel wurde noch nicht gestartet');
@@ -72,7 +80,7 @@
     rolls.forEach(r => { if (sums[r.sum] !== undefined) sums[r.sum] += 1; if (events[r.event] !== undefined) events[r.event] += 1; });
     return { total: rolls.length, sums, events, most: Object.entries(sums).sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))[0] };
   }
-  scope.CatanCore = { MODES, EVENT_LABELS, EVENTS, COLOR_NAMES, die, makeId, createRoom, roll, resolveAttack, undo, stats };
+  scope.CatanCore = { MODES, EVENT_LABELS, EVENTS, COLOR_NAMES, die, makeId, createRoom, setPoints, roll, resolveAttack, undo, stats };
   if (typeof module !== 'undefined' && module.exports) module.exports = scope.CatanCore;
 })(typeof window !== 'undefined' ? window : globalThis);
 
