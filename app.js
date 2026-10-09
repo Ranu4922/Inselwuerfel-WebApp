@@ -70,13 +70,13 @@
   }
   function playerLine(p) {
     const idx=room.players.findIndex(x=>x.id===p.id);
-    return `<div class="player-line"><span class="avatar" style="background:${COLORS[idx%COLORS.length]}">${esc((p.name||'?').slice(0,1).toUpperCase())}</span><span class="player-details"><strong>${esc(p.name)}${p.id===selfId?' (du)':''}</strong><small>${idx===0?'Gastgeber':p.online?'Verbunden':'Nicht verbunden'}</small></span>${idx===0?'<span class="gold" title="Gastgeber">♛</span>':p.online?'<span class="round-tag">✓ Bereit</span>':'<span class="tiny">offline</span>'}</div>`;
+    return `<div class="player-line"><span class="avatar" style="background:${COLORS[idx%COLORS.length]}">${esc((p.name||'?').slice(0,1).toUpperCase())}</span><span class="player-details"><strong>${esc(p.name)}${p.id===selfId?' (du)':''}</strong><small>${idx===0?'Gastgeber':p.online?'Verbunden':'Nicht verbunden'}</small></span><span class="score-player-pill">${scoreOf(p)} P.</span>${idx===0?'<span class="gold" title="Gastgeber">♛</span>':p.online?'<span class="round-tag">✓ Bereit</span>':'<span class="tiny">offline</span>'}</div>`;
   }
   function renderGame() {
     if(!room)return renderHome();
-    const tabs=[['roll','⚄','Würfeln'], ...(mode().event?[['barbarians','♜','Barbaren']]:[]), ['stats','▥','Statistik'], ['history','☷','Verlauf'], ['players','♙','Spieler']];
+    const tabs=[['roll','⚄','Würfeln'], ...(mode().event?[['barbarians','♜','Barbaren']]:[]), ['points','★','Punkte'], ['stats','▥','Statistik'], ['history','☷','Verlauf'], ['players','♙','Spieler']];
     const extra=`<span class="status-dot ${ui.connected||role==='offline'?'ok':'warn'}" title="${isOnline()?(ui.connected?'Verbunden':'Verbindung getrennt'):'Offline'}"></span><button class="iconbtn" data-action="game-options" aria-label="Spieloptionen">⚙</button>`;
-    return `<section class="screen with-nav">${topbar(room.title,null,extra)}${!ui.connected&&isOnline()?`<div class="alert error">Keine Verbindung zum Spielraum. <button class="btn sm secondary space-top" data-action="retry-online">Erneut verbinden</button></div>`:''}${ui.tab==='roll'?renderRoll():''}${ui.tab==='barbarians'&&mode().event?renderBarbarians():''}${ui.tab==='stats'?renderStats():''}${ui.tab==='history'?renderHistory():''}${ui.tab==='players'?renderPlayers():''}<nav class="nav" aria-label="Spielnavigation">${tabs.map(([id,symbol,label])=>`<button data-action="tab" data-value="${id}" class="${ui.tab===id?'selected':''}" aria-label="${label}" ${ui.tab===id?'aria-current="page"':''}><span class="nav-icon">${symbol}</span><span>${label}</span></button>`).join('')}</nav></section>`;
+    return `<section class="screen with-nav">${topbar(room.title,null,extra)}${!ui.connected&&isOnline()?`<div class="alert error">Keine Verbindung zum Spielraum. <button class="btn sm secondary space-top" data-action="retry-online">Erneut verbinden</button></div>`:''}${ui.tab==='roll'?renderRoll():''}${ui.tab==='points'?renderPoints():''}${ui.tab==='barbarians'&&mode().event?renderBarbarians():''}${ui.tab==='stats'?renderStats():''}${ui.tab==='history'?renderHistory():''}${ui.tab==='players'?renderPlayers():''}<nav class="nav" aria-label="Spielnavigation">${tabs.map(([id,symbol,label])=>`<button data-action="tab" data-value="${id}" class="${ui.tab===id?'selected':''}" aria-label="${label}" ${ui.tab===id?'aria-current="page"':''}><span class="nav-icon">${symbol}</span><span>${label}</span></button>`).join('')}</nav></section>`;
   }
   function renderRoll() {
     const last=latest();
@@ -85,7 +85,7 @@
     const name=last ? (player(last.playerId)?.name||'Ehem. Spieler') : '';
     const desc=last?.event?{ship:'⚑ Die Barbaren rücken vor',science:'Grünes Stadttor · Wissenschaft',politics:'Blaues Stadttor · Politik',trade:'Gelbes Stadttor · Handel'}[last.event]:'';
     const blocked=room.attackPending || (isOnline()&&!ui.connected) || ui.loadingRoll;
-    return `<div class="eyebrow center">${esc(mode().label)} · ${mode().event?'3 Würfel':'2 Würfel'}</div><div class="dice-stage"><div class="light-halo"></div>${last?`<div class="dice-row">${dieMarkup(last.red,'red',animate)}${dieMarkup(last.white,'cream',animate)}${mode().event?dieMarkup(last.event,'event',animate):''}</div><div class="sum">${last.sum}</div><div class="rolled-by">Gewürfelt von <b>${esc(name)}</b> · ${time(last.ts)}</div>${mode().event?`<div class="event-mark">${desc}</div>`:''}`:`<div class="dice-row">${dieMarkup(5,'red')}${dieMarkup(3)}${mode().event?dieMarkup('ship','event'):''}</div><div class="sum empty">Bereit zum Würfeln?</div><div class="rolled-by">Alle sehen denselben Wurf</div>`}</div><button class="roll-cta" data-action="roll" ${blocked?'disabled':''}><span class="dice-mini">⚄</span>${ui.loadingRoll?'Würfelt …':room.attackPending?'Barbarenangriff läuft':(isOnline()&&!ui.connected?'Keine Verbindung':'Jetzt würfeln')}</button><div class="dice-help">${room.attackPending?'Zuerst den Angriff abschließen':mode().event?'Roter + weißer Würfel und Ereigniswürfel':'Zwei faire, unabhängige Zahlenwürfel'}</div>${mode().event?`<div class="last-roll"><div><b style="font-size:14px">♜ Barbaren</b><div class="roll-tag" style="margin-top:5px">${room.attackPending?'Die Barbaren sind angekommen!':`Noch ${7-room.barbarianSteps} Schiffssymbole bis zum Angriff`}</div></div><button class="btn sm secondary" data-action="tab" data-value="barbarians">Ansehen →</button></div>`:''}${last?.event&&last.event!=='ship'?`<div class="alert"><b>${desc}</b><br>Ob ein Spieler eine Fortschrittskarte bekommt, hängt von seinem Stadtausbau und der <b>roten ${last.red}</b> ab.</div>`:''}${last?.sum===7?`<div class="alert">⚠ Eine 7 wurde gewürfelt. Räuberregel wie gewohnt am Spielbrett ausführen.</div>`:''}<div class="footer-copy">Würfe: ${room.history.length} · ${room.players.length} Spieler · ${role==='offline'?'Offline':'Synchronisiert'}</div>`;
+    return `<div class="eyebrow center">${esc(mode().label)} · ${mode().event?'3 Würfel':'2 Würfel'}</div><div class="dice-stage"><div class="light-halo"></div>${last?`<div class="dice-row">${dieMarkup(last.red,'red',animate)}${dieMarkup(last.white,'cream',animate)}${mode().event?dieMarkup(last.event,'event',animate):''}</div><div class="sum">${last.sum}</div><div class="rolled-by">Gewürfelt von <b>${esc(name)}</b> · ${time(last.ts)}</div>${mode().event?`<div class="event-mark">${desc}</div>`:''}`:`<div class="dice-row">${dieMarkup(5,'red')}${dieMarkup(3)}${mode().event?dieMarkup('ship','event'):''}</div><div class="sum empty">Bereit zum Würfeln?</div><div class="rolled-by">Alle sehen denselben Wurf</div>`}</div><button class="roll-cta" data-action="roll" ${blocked?'disabled':''}><span class="dice-mini">⚄</span>${ui.loadingRoll?'Würfelt …':room.attackPending?'Barbarenangriff läuft':(isOnline()&&!ui.connected?'Keine Verbindung':'Jetzt würfeln')}</button><div class="dice-help">${room.attackPending?'Zuerst den Angriff abschließen':mode().event?'Roter + weißer Würfel und Ereigniswürfel':'Zwei faire, unabhängige Zahlenwürfel'}</div>${mode().event?`<div class="last-roll"><div><b style="font-size:14px">♜ Barbaren</b><div class="roll-tag" style="margin-top:5px">${room.attackPending?'Die Barbaren sind angekommen!':`Noch ${7-room.barbarianSteps} Schiffssymbole bis zum Angriff`}</div></div><button class="btn sm secondary" data-action="tab" data-value="barbarians">Ansehen →</button></div>`:''}${last?.event&&last.event!=='ship'?`<div class="alert"><b>${desc}</b><br>Ob ein Spieler eine Fortschrittskarte bekommt, hängt von seinem Stadtausbau und der <b>roten ${last.red}</b> ab.</div>`:''}${last?.sum===7?`<div class="alert">⚠ Eine 7 wurde gewürfelt. Räuberregel wie gewohnt am Spielbrett ausführen.</div>`:''}${renderScoreStrip()}<div class="footer-copy">Würfe: ${room.history.length} · ${room.players.length} Spieler · ${role==='offline'?'Offline':'Synchronisiert'}</div>`;
   }
   function renderBarbarians() {
     return `<div class="eyebrow center space-top">STÄDTE & RITTER</div><h2 class="page-title center">Die Barbaren</h2><p class="lead center">${room.attackPending?'Die Barbaren haben Catan erreicht!':'Die Barbaren kommen näher …'}</p><div class="barbarian-art">${barbarianScene()}</div><div class="track">${Array.from({length:7},(_,i)=>`<div class="track-dot ${i<room.barbarianSteps?'done':''}" title="Schritt ${i+1}">${i<room.barbarianSteps?'●':''}</div>`).join('')}</div><div class="barbarian-caption">${room.attackPending?'⚔ Angriff auf Catan!':room.barbarianSteps===0?'Die Küste ist noch sicher':`${7-room.barbarianSteps} ${7-room.barbarianSteps===1?'Schritt':'Schritte'} entfernt`}</div><div class="barbarian-sub">${room.attackPending?'Wertet die aktiven Ritter und Städte am Spielbrett aus.':`Bei jedem Barbarenschiff auf dem Ereigniswürfel rücken sie ein Feld vor.`}</div>${room.attackPending?amHost()?`<button class="btn primary full" data-action="resolve-attack">Angriff abgeschlossen · Zurücksetzen</button>`:`<div class="alert center">Der Gastgeber setzt den Tracker nach dem Angriff zurück.</div>`:`<div class="panel center"><div class="small muted">Bisherige Barbarenangriffe</div><div style="font:700 33px Georgia,serif;margin-top:7px">${room.attacks}</div></div>`}<div class="footer-copy">Die Anzeige bewegt sich bei Schiffswürfen automatisch. Keine zusätzlichen Spielinformationen nötig.</div>`;
@@ -101,6 +101,29 @@
   }
   function renderHistory() {
     return `<div class="eyebrow center space-top">SPIELVERLAUF</div><h2 class="page-title center">Letzte Würfe</h2><p class="lead center">${room.history.length} Würfelwürfe in dieser Partie</p>${!room.history.length?`<div class="empty-state"><div class="emoji">⚄</div><b>Noch keine Würfe</b>Der Verlauf wird nach dem ersten Würfeln angezeigt.</div>`:`<div class="panel">${[...room.history].reverse().slice(0,100).map(r=>`<div class="history-item"><span class="avatar tiny-avatar" style="background:${COLORS[Math.max(0,room.players.findIndex(p=>p.id===r.playerId))%COLORS.length]}">${esc((player(r.playerId)?.name||'?')[0])}</span><div class="player-details"><strong>${esc(player(r.playerId)?.name||'Spieler')}</strong><small>${time(r.ts)}${r.event?` · ${esc(C.EVENT_LABELS[r.event])}`:''}</small></div><div class="tiny-dice">${tinyDie(r.red,'red')}${tinyDie(r.white)}${r.event?tinyDie(r.event,'event'):''}</div><b class="history-sum">${r.sum}</b></div>`).join('')}</div>`}${amHost()&&room.history.length>room.attackResetAt?`<button class="btn ghost full space-top" data-action="undo">↶ Letzten Wurf rückgängig</button>`:''}`;
+  }
+
+  function scoreOf(p) { return p && Number.isInteger(p.points) && p.points>=0 ? p.points : 0; }
+  function renderScoreStrip() {
+    const list=room.players.map((p,i)=>
+      '<div class="score-quick-player"><span class="score-dot" style="background:'+COLORS[i%COLORS.length]+'"></span><span class="score-quick-name">'+esc(p.name)+'</span><strong>'+scoreOf(p)+'</strong></div>'
+    ).join('');
+    return '<div class="panel score-overview"><div class="row"><b>★ Siegespunkte</b><button class="btn sm secondary" data-action="tab" data-value="points">Bearbeiten →</button></div><div class="score-quick">'+list+'</div></div>';
+  }
+  function renderPoints() {
+    const cards=room.players.map((p,i)=>{
+      const points=scoreOf(p),editable=amHost()||p.id===selfId;
+      const label=esc(p.name),id=esc(p.id);
+      const controls=editable ?
+        '<div class="score-controls"><button class="score-step" type="button" data-action="score-minus" data-value="'+id+'" aria-label="Punkt bei '+label+' abziehen" '+(points===0?'disabled':'')+'>−</button>'+
+        '<input class="score-input" data-score-input="'+id+'" type="number" inputmode="numeric" min="0" max="99" step="1" value="'+points+'" aria-label="Siegespunkte von '+label+'">'+
+        '<button class="score-step plus" type="button" data-action="score-plus" data-value="'+id+'" aria-label="Punkt bei '+label+' hinzufügen" '+(points>=99?'disabled':'')+'>+</button></div>' :
+        '<div class="score-readonly">'+points+' <small>Punkte</small></div>';
+      return '<div class="score-row"><div class="score-person"><span class="avatar" style="background:'+COLORS[i%COLORS.length]+'">'+esc((p.name||'?')[0].toUpperCase())+'</span><div class="score-person-name"><strong>'+label+(p.id===selfId?' (du)':'')+'</strong><small>'+(i===0?'Gastgeber':'Mitspieler')+'</small></div></div>'+controls+'</div>';
+    }).join('');
+    const explanation=amHost()?'Als Gastgeber kannst du die Punkte aller Spieler ändern.':'Du kannst deine eigenen Punkte ändern. Die anderen aktualisieren sich automatisch.';
+    const syncInfo=role==='offline'?'Die Eingaben bleiben auf diesem Gerät gespeichert.':'Alle Änderungen werden im Spielraum synchronisiert.';
+    return '<div class="eyebrow center space-top">PUNKTEZÄHLER</div><h2 class="page-title center">Eure Siegespunkte</h2><p class="lead center">Punkte am Spielbrett selbst zählen und hier festhalten.</p><div class="panel score-list">'+cards+'</div><div class="alert space-top">'+explanation+' '+syncInfo+'</div>';
   }
   function renderPlayers() {
     return `<div class="eyebrow center space-top">GEMEINSAM SPIELEN</div><h2 class="page-title center">Mitspieler</h2><div class="panel">${room.players.map(p=>playerLine(p)).join('')}</div>${isOnline()?`<div class="panel center space-top"><div class="small muted">Spielraum</div><div class="code" style="font-size:36px">${esc(room.code)}</div><button class="btn sm secondary full" data-action="share">↗ Mit Freunden teilen</button><div class="connection"><span class="status-dot ${ui.connected?'ok':'warn'}"></span>${ui.connected?'Verbunden':'Offline / Verbindung wird hergestellt'}</div></div>`:''}${amHost()?`<div class="mini-header">Gastgeber-Aktionen</div><button class="btn secondary full" data-action="undo" ${!room.history.length||room.history.length<=room.attackResetAt?'disabled':''}>↶ Letzten Wurf zurücknehmen</button>${room.players.length>1?`<button class="btn ghost full space-top" data-action="cleanup-players">Nicht verbundene Spieler entfernen</button>`:''}<button class="btn danger full space-top" data-action="reset-game">Partie neu starten</button>`:''}<button class="btn ghost full space-top" data-action="leave-session">Spiel verlassen</button><div class="footer-copy">Das Gerät des Gastgebers muss für die Live-Synchronisierung aktiv bleiben.</div>`;
@@ -177,12 +200,16 @@
       if(!id||!name||!data.protocol||data.protocol!==1){safeSend(conn,{type:'error',message:'Ungültige App-Version oder Spielername'});return;}
       let p=player(id);
       if(!p && room.players.length>=room.maxPlayers){safeSend(conn,{type:'error',message:'Dieser Spielraum ist voll'});setTimeout(()=>conn.close(),500);return;}
-      if(!p){p={id,name,color:C.COLOR_NAMES[room.players.length%C.COLOR_NAMES.length],online:true};room.players.push(p);}else{p.online=true;p.name=name;}
+      if(!p){p={id,name,color:C.COLOR_NAMES[room.players.length%C.COLOR_NAMES.length],online:true,points:0};room.players.push(p);}else{p.online=true;p.name=name;}
       const old=guestConnections.get(id);if(old&&old!==conn){try{old.close()}catch{}}
       conn.playerId=id;guestConnections.set(id,conn);safeSend(conn,{type:'welcome',state:room});broadcast();return;
     }
     if(!conn.playerId || guestConnections.get(conn.playerId)!==conn)return;
     if(data.type==='roll')handleRoll(conn.playerId);
+    if(data.type==='points'){
+      try {C.setPoints(room,conn.playerId,data.points);broadcast();}
+      catch(e){safeSend(conn,{type:'points-error',message:e.message});}
+    }
     if(data.type==='leave'){const p=player(conn.playerId);if(p)p.online=false;conn.close();guestClosed(conn);}
   }
   async function startGuest(code) {
@@ -205,6 +232,7 @@
   }
   function handleGuestMessage(data) {
     if(!data||typeof data!=='object')return;
+    if(data.type==='points-error'){toast(String(data.message||'Punktestand nicht übernommen'));return;}
     if(data.type==='error'){ui.connected=false;ui.connecting=false;ui.roomStatus=String(data.message||'Verbindungsfehler');ui.screen='join';render();return;}
     if((data.type==='welcome'||data.type==='state')&&data.state){
       const oldId=latest()?.id,oldPending=room?.attackPending;
@@ -220,6 +248,15 @@
     if(!room||!amHost())return;
     try { C.roll(room,playerId);ui.lastSeenRoll='';if(room.attackPending)ui.showAttack=true; broadcast(); }
     catch(e){ toast(e.message); }
+  }
+  function changePoints(id,value) {
+    if(!room||!room.started)return;
+    if(role==='guest' && (id!==selfId || !ui.connected || !hostConn?.open)){toast('Du kannst gerade nur deine eigenen Punkte online ändern');render();return;}
+    try{
+      const points=C.setPoints(room,id,value);
+      if(amHost())broadcast();
+      else {save();render();safeSend(hostConn,{type:'points',points});}
+    }catch(e){toast(e.message);render();}
   }
   function guestRoll() { if(!hostConn?.open||!ui.connected){toast('Keine Verbindung zum Gastgeber');return;}ui.loadingRoll=true;render();safeSend(hostConn,{type:'roll'});setTimeout(()=>{if(ui.loadingRoll){ui.loadingRoll=false;render()}},5000); }
   function shareRoom() {
@@ -261,6 +298,8 @@
       case 'join-online':proceedJoin();break;
       case 'start-game':if(amHost()){room.started=true;broadcast();ui.screen='game';render();}break;
       case 'roll':if(room?.attackPending)return;if(amHost())handleRoll(selfId);else guestRoll();break;
+      case 'score-plus':changePoints(value,scoreOf(player(value))+1);break;
+      case 'score-minus':changePoints(value,scoreOf(player(value))-1);break;
       case 'tab':ui.tab=value;ui.showAttack=false;render();break;
       case 'close-attack':ui.showAttack=false;render();break;
       case 'resolve-attack':if(amHost()){C.resolveAttack(room);ui.showAttack=false;broadcast();}break;
@@ -271,7 +310,7 @@
       case 'stats-cycle':{const ids=['all',...room.players.map(p=>p.id)];const next=(ids.indexOf(ui.selectedStatsPlayer)+1)%ids.length;ui.selectedStatsPlayer=ids[next];render();break;}
       case 'undo':if(amHost()){try{C.undo(room);ui.lastSeenRoll='';broadcast();toast('Letzter Wurf zurückgenommen')}catch(e){toast(e.message)}}break;
       case 'cleanup-players':if(amHost()){room.players=room.players.filter(p=>p.id===selfId||p.online);broadcast();toast('Nicht verbundene Spieler entfernt')}break;
-      case 'reset-game':if(amHost()&&confirm('Wirklich den kompletten Würfelverlauf und Barbarenstand zurücksetzen?')){room.history=[];room.barbarianSteps=0;room.attackPending=false;room.attacks=0;room.attackResetAt=0;ui.selectedStatsPlayer='all';ui.lastSeenRoll='';broadcast();}break;
+      case 'reset-game':if(amHost()&&confirm('Wirklich Würfelverlauf, Barbarenstand und Punkte aller Spieler zurücksetzen?')){room.history=[];room.barbarianSteps=0;room.attackPending=false;room.attacks=0;room.attackResetAt=0;room.players.forEach(p=>p.points=0);ui.selectedStatsPlayer='all';ui.lastSeenRoll='';broadcast();}break;
       case 'leave-session':if(confirm(role==='host'?'Spielraum verlassen? Die anderen Geräte verlieren dann die Verbindung.':'Spiel wirklich verlassen?'))leave();break;
       case 'resume':resume();break;
       case 'game-options':ui.tab='players';render();break;
@@ -282,7 +321,14 @@
     const el=e.target.closest('[data-action]');if(!el||el.disabled)return;
     act(el.dataset.action,el.dataset.value).catch?.(err=>{console.error(err);toast('Ein Fehler ist aufgetreten')});
   });
-  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&ui.screen==='join'){e.preventDefault();proceedJoin();}});
+  document.addEventListener('change',e=>{
+    const field=e.target.closest('[data-score-input]');
+    if(field)changePoints(field.dataset.scoreInput,field.value);
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&e.target.matches('[data-score-input]')){e.preventDefault();e.target.blur();return;}
+    if(e.key==='Enter'&&ui.screen==='join'){e.preventDefault();proceedJoin();}
+  });
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();ui.installPrompt=e;if(ui.screen==='help')render();});
   window.addEventListener('online',()=>{if(isOnline()&&!ui.connected)retryOnline();});
   window.addEventListener('pagehide',()=>{if(role==='host'||role==='offline')save();});
