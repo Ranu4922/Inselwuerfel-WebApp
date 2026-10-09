@@ -8,3 +8,30 @@
 
 @media(max-width:849px){.nav{position:fixed;left:50%;right:auto;transform:translateX(-50%);width:min(100%,500px);bottom:0}.with-nav{padding-bottom:calc(103px + env(safe-area-inset-bottom))}}
 
+
+/* Siegespunkte: kompakte Spielerübersicht und manuelle Punkteingabe */
+.score-overview{margin-top:16px}
+.score-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}
+.score-quick-player{display:flex;gap:8px;align-items:center;padding:11px 9px;border-radius:12px;background:#0b242b;min-width:0}
+.score-quick-player strong{font-size:19px;font-weight:900;color:var(--gold);min-width:22px;text-align:right}
+.score-quick-name{font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}
+.score-dot{height:9px;width:9px;flex:0 0 9px;border-radius:50%}
+.score-list{padding:5px 14px}
+.score-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0;border-bottom:1px solid #ffffff16}
+.score-row:last-child{border-bottom:0}
+.score-person{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.score-person .avatar{flex:0 0 auto}
+.score-person-name{min-width:0}
+.score-person-name strong{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score-person-name small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.score-controls{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.score-step{width:39px;height:43px;border:1px solid #42635f;border-radius:10px;font-size:23px;font-weight:800;color:var(--pale);background:#173c43}
+.score-step.plus{background:#127f4b;border-color:#36b976;color:white}
+.score-step:disabled{opacity:.3;cursor:not-allowed}
+.score-input{width:48px;height:43px;padding:3px 2px;border:1px solid #6a826a;border-radius:10px;background:#071f29;color:var(--gold);text-align:center;font-size:21px;font-weight:900;font-variant-numeric:tabular-nums;appearance:textfield}
+.score-input::-webkit-outer-spin-button,.score-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.score-input:focus{outline:2px solid #c69c56;outline-offset:2px}
+.score-readonly{font-weight:900;font-size:24px;color:var(--gold);white-space:nowrap}
+.score-readonly small{font-size:11px;color:var(--muted);font-weight:400}
+.score-player-pill{background:#1e4042;color:#f6d78f;border-radius:8px;font-size:11px;font-weight:800;padding:5px 7px;white-space:nowrap}
+@media(max-width:380px){.score-list{padding:5px 9px}.score-row{gap:5px}.score-controls{gap:3px}.score-step{width:33px;height:40px}.score-input{width:43px;height:40px}.score-person .avatar{width:31px;height:31px}.nav button{font-size:9px}.nav button .nav-icon{font-size:20px}}
