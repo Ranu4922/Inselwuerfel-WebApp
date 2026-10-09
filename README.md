@@ -10,6 +10,9 @@ Installierbare Web-App (PWA) für iPhone, Android und PC. Grundspiel/Seefahrer: 
 - Unabhängige faire Würfel durch Crypto API; bei 3 Würfeln Summe nur aus zwei Zahlenwürfeln
 - Barbaren rücken automatisch bei Schiffssymbolen auf einer Strecke von 7 Schritten vor. Am Ende gibt es einen Angriffshinweis. Nach Abwicklung setzt der Host zurück.
 - Würfelhistorie, Gesamt- und pro-Spieler-Statistik, Ereignisverteilung, Undo des letzten Wurfs, PWA-Installation.
+- Manueller Siegespunktezähler im eigenen Reiter **Punkte**: +/− oder direkte Eingabe (0 bis 99). Gastgeber kann alle Punkte bearbeiten, Online-Mitspieler ihre eigenen. Werte werden live synchronisiert und lokal gespeichert.
+- Offline lassen sich über den Punkte-Reiter zusätzliche Mitspieler anlegen und auf einem einzigen Gerät verwalten.
+- Hinweis: Vollständig offline arbeitende Mehrspieler-Lobbys über Bluetooth oder lokales WLAN sind noch nicht implementiert. Der bestehende Online-Multiplayer benötigt Internet für die PeerJS-Vermittlung.
 
 ## Öffnen und ausprobieren
 
