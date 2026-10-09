@@ -1,0 +1,19 @@
+{
+  "name": "Inselwürfel – Würfelbegleiter",
+  "short_name": "Inselwürfel",
+  "description": "Inoffizieller Würfelbegleiter für CATAN mit Multiplayer, Statistik und Barbaren-Tracker",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#071c25",
+  "theme_color": "#071c25",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
