@@ -123,7 +123,9 @@
     }).join('');
     const explanation=amHost()?'Als Gastgeber kannst du die Punkte aller Spieler ändern.':'Du kannst deine eigenen Punkte ändern. Die anderen aktualisieren sich automatisch.';
     const syncInfo=role==='offline'?'Die Eingaben bleiben auf diesem Gerät gespeichert.':'Alle Änderungen werden im Spielraum synchronisiert.';
-    return '<div class="eyebrow center space-top">PUNKTEZÄHLER</div><h2 class="page-title center">Eure Siegespunkte</h2><p class="lead center">Punkte am Spielbrett selbst zählen und hier festhalten.</p><div class="panel score-list">'+cards+'</div><div class="alert space-top">'+explanation+' '+syncInfo+'</div>';
+    const offlinePlayers=role==='offline'&&room.players.length<room.maxPlayers ?
+      '<div class="panel space-top"><label class="input-label" for="offline-player-name">Weiteren Mitspieler hinzufügen</label><div class="row"><input class="input" id="offline-player-name" maxlength="22" placeholder="Spielername" style="min-width:0;flex:1"><button class="btn sm primary" data-action="add-offline-player">Hinzufügen</button></div></div>' : '';
+    return '<div class="eyebrow center space-top">PUNKTEZÄHLER</div><h2 class="page-title center">Eure Siegespunkte</h2><p class="lead center">Punkte am Spielbrett selbst zählen und hier festhalten.</p><div class="panel score-list">'+cards+'</div>'+offlinePlayers+'<div class="alert space-top">'+explanation+' '+syncInfo+'</div>';
   }
   function renderPlayers() {
     return `<div class="eyebrow center space-top">GEMEINSAM SPIELEN</div><h2 class="page-title center">Mitspieler</h2><div class="panel">${room.players.map(p=>playerLine(p)).join('')}</div>${isOnline()?`<div class="panel center space-top"><div class="small muted">Spielraum</div><div class="code" style="font-size:36px">${esc(room.code)}</div><button class="btn sm secondary full" data-action="share">↗ Mit Freunden teilen</button><div class="connection"><span class="status-dot ${ui.connected?'ok':'warn'}"></span>${ui.connected?'Verbunden':'Offline / Verbindung wird hergestellt'}</div></div>`:''}${amHost()?`<div class="mini-header">Gastgeber-Aktionen</div><button class="btn secondary full" data-action="undo" ${!room.history.length||room.history.length<=room.attackResetAt?'disabled':''}>↶ Letzten Wurf zurücknehmen</button>${room.players.length>1?`<button class="btn ghost full space-top" data-action="cleanup-players">Nicht verbundene Spieler entfernen</button>`:''}<button class="btn danger full space-top" data-action="reset-game">Partie neu starten</button>`:''}<button class="btn ghost full space-top" data-action="leave-session">Spiel verlassen</button><div class="footer-copy">Das Gerät des Gastgebers muss für die Live-Synchronisierung aktiv bleiben.</div>`;
@@ -249,6 +251,15 @@
     try { C.roll(room,playerId);ui.lastSeenRoll='';if(room.attackPending)ui.showAttack=true; broadcast(); }
     catch(e){ toast(e.message); }
   }
+  function addOfflinePlayer() {
+    if(role!=='offline'||!room||room.players.length>=room.maxPlayers)return;
+    const name=($('offline-player-name')?.value||'').trim().slice(0,22);
+    if(!name){toast('Bitte Spielernamen eingeben');return;}
+    if(room.players.some(p=>p.name.toLocaleLowerCase('de')===name.toLocaleLowerCase('de'))){toast('Dieser Spielername ist bereits vergeben');return;}
+    const index=room.players.length;
+    room.players.push({id:C.makeId(),name,color:C.COLOR_NAMES[index%C.COLOR_NAMES.length],online:true,points:0});
+    save();render();toast(name+' wurde hinzugefügt');
+  }
   function changePoints(id,value) {
     if(!room||!room.started)return;
     if(role==='guest' && (id!==selfId || !ui.connected || !hostConn?.open)){toast('Du kannst gerade nur deine eigenen Punkte online ändern');render();return;}
@@ -298,6 +309,7 @@
       case 'join-online':proceedJoin();break;
       case 'start-game':if(amHost()){room.started=true;broadcast();ui.screen='game';render();}break;
       case 'roll':if(room?.attackPending)return;if(amHost())handleRoll(selfId);else guestRoll();break;
+      case 'add-offline-player':addOfflinePlayer();break;
       case 'score-plus':changePoints(value,scoreOf(player(value))+1);break;
       case 'score-minus':changePoints(value,scoreOf(player(value))-1);break;
       case 'tab':ui.tab=value;ui.showAttack=false;render();break;
